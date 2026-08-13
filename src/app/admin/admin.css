@@ -1,0 +1,392 @@
+/* =====================================================================
+   Dashboard
+   ---------------------------------------------------------------------
+   Deliberately plainer than the public site. Nobody is being impressed
+   here; the owner is editing text under time pressure and wants to see
+   the fields, not the finish. Tokens are inherited from globals.css.
+   ===================================================================== */
+
+.admin {
+  min-height: 100vh;
+  background: var(--mist);
+  color: var(--ink);
+}
+
+.admin-wrap {
+  width: 100%;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.admin-main { padding: 36px 24px 80px; }
+
+/* ---------------------------------------------------------------- bar */
+
+.admin-bar {
+  background: var(--void);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.admin-bar .admin-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 58px;
+}
+.admin-mark {
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -.02em;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.admin-mark span { color: var(--cyan); }
+.admin-mark em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin-left: 6px;
+}
+.admin-bar-right { display: flex; align-items: center; gap: 14px; }
+.admin-link { color: rgba(255,255,255,.72); text-decoration: none; font-size: 13px; font-weight: 600; }
+.admin-link:hover { color: #fff; }
+.admin-user {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+}
+
+/* -------------------------------------------------------------- heads */
+
+.admin-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.admin-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.admin-head h1 { font-weight: 800; font-size: 27px; letter-spacing: -.03em; }
+.admin h2 { font-weight: 700; font-size: 17px; letter-spacing: -.02em; margin-bottom: 6px; }
+.muted { color: var(--muted); font-size: 14px; }
+
+/* ------------------------------------------------------------- buttons */
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 18px;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s var(--ease), transform .2s var(--ease), opacity .2s var(--ease);
+}
+.admin-btn.small { padding: 8px 14px; font-size: 13px; }
+.admin-btn:disabled { opacity: .55; cursor: progress; }
+
+.admin-btn.primary {
+  background: linear-gradient(135deg, var(--blue-lift), var(--blue));
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(46,107,255,.3);
+}
+.admin-btn.primary:hover:not(:disabled) { transform: translateY(-1px); }
+
+.admin-btn.ghost {
+  background: var(--paper);
+  border-color: rgba(11,15,26,.12);
+  color: var(--ink);
+}
+.admin-btn.ghost:hover:not(:disabled) { background: #fff; border-color: rgba(11,15,26,.22); }
+
+/* Destructive actions are the one place colour is doing safety work. */
+.admin-btn.danger { background: #C2183C; color: #fff; }
+.admin-btn.danger:hover:not(:disabled) { background: #A3122F; }
+
+/* --------------------------------------------------------------- cards */
+
+.admin-card {
+  background: var(--paper);
+  border: 1px solid rgba(11,15,26,.07);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  box-shadow: var(--lift);
+  margin-bottom: 18px;
+}
+.admin-card.empty { text-align: center; padding: 48px 24px; }
+.admin-card.empty .admin-btn { margin-top: 18px; }
+
+.login {
+  max-width: 400px;
+  margin: 72px auto;
+}
+.login h1 { font-weight: 800; font-size: 25px; letter-spacing: -.03em; margin-bottom: 6px; }
+.login .muted { margin-bottom: 22px; }
+.login .admin-btn { width: 100%; margin-top: 6px; }
+
+/* --------------------------------------------------------------- forms */
+
+.field { display: block; margin-bottom: 18px; }
+.field > span {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(11,15,26,.14);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.field textarea { resize: vertical; line-height: 1.6; }
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--blue-lift);
+  box-shadow: 0 0 0 3px rgba(46,107,255,.16);
+}
+.field small { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.checkbox { display: flex; align-items: flex-start; gap: 11px; padding-top: 26px; }
+.checkbox input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--blue-lift); }
+.checkbox span { font-weight: 600; font-size: 15px; }
+.checkbox small { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+
+.field-error,
+.form-error {
+  display: block;
+  color: #C2183C;
+  font-size: 13px;
+  font-style: normal;
+  margin-top: 7px;
+}
+.form-error.banner {
+  padding: 13px 16px;
+  border-radius: var(--r-sm);
+  background: rgba(194,24,60,.06);
+  border: 1px solid rgba(194,24,60,.2);
+  margin-bottom: 18px;
+}
+
+.metrics { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.metric-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; }
+.metric-row input {
+  padding: 10px 13px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(11,15,26,.14);
+  font: inherit;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.cover-preview {
+  width: 100%;
+  max-width: 380px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(11,15,26,.1);
+  margin-top: 12px;
+}
+
+.upload .row { grid-template-columns: 1fr auto; align-items: center; margin-top: 14px; }
+.upload input[type='file'] { font-size: 14px; min-width: 0; }
+
+.admin-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+
+/* ------------------------------------------------------------- listing */
+
+.project-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.project-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--paper);
+  border: 1px solid rgba(11,15,26,.07);
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+  box-shadow: var(--lift);
+}
+.project-main { min-width: 0; flex: 1 1 320px; }
+.project-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 5px; }
+.project-title a { color: var(--ink); text-decoration: none; font-weight: 800; font-size: 17px; letter-spacing: -.02em; }
+.project-title a:hover { color: var(--blue); }
+.project-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 9px;
+  overflow-wrap: anywhere;
+}
+.warn { color: #B45309; font-style: normal; }
+.project-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+
+.pill {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+.pill.live { background: rgba(61,220,151,.14); border-color: rgba(61,220,151,.4); color: #0F7A4F; }
+.pill.draft { background: rgba(11,15,26,.05); border-color: rgba(11,15,26,.12); color: var(--muted); }
+.pill:disabled { cursor: progress; }
+
+.confirm {
+  flex: 1 1 100%;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: rgba(194,24,60,.05);
+  border: 1px solid rgba(194,24,60,.22);
+}
+.confirm p { font-size: 14px; margin-bottom: 12px; }
+.confirm-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------- mobile */
+
+@media (max-width: 720px) {
+  .admin-wrap { padding: 0 18px; }
+  .admin-main { padding: 26px 18px 64px; }
+  .admin-bar .admin-wrap { height: 54px; }
+  .admin-user { display: none; }
+
+  .row { grid-template-columns: 1fr; }
+  .checkbox { padding-top: 4px; }
+  .metric-row { grid-template-columns: 1fr; }
+  .project-row { padding: 18px; }
+  .admin-actions .admin-btn { flex: 1 1 100%; }
+  .upload .row { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------------------ stack */
+
+.tech-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+.tech-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(11,15,26,.08);
+  background: var(--mist);
+}
+.tech-row.editing { background: #fff; border-color: rgba(46,107,255,.3); }
+.tech-name { display: flex; align-items: center; gap: 10px; flex: 1 1 200px; min-width: 0; }
+.tech-name strong { font-weight: 700; font-size: 15px; }
+.tech-order { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.tech-controls { display: flex; gap: 7px; }
+
+.tech-form {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr .6fr auto auto auto;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+}
+.tech-form.add { margin-top: 16px; grid-template-columns: 1.4fr 1fr .6fr auto auto; }
+.tech-form input,
+.tech-form select {
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(11,15,26,.14);
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  min-width: 0;
+}
+.inline-check { display: flex; align-items: center; gap: 7px; font-size: 13px; white-space: nowrap; }
+.inline-check input { width: 16px; height: 16px; accent-color: var(--blue-lift); }
+
+.field-error.full { flex: 1 1 100%; }
+
+/* --------------------------------------------------- attaching tech */
+
+.tech-picker { margin-top: 18px; }
+.tech-picker h3 {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 10px;
+}
+.tech-options { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* A checkbox styled as a chip: the same shape the choice produces on the
+   public page, so the control looks like its own result. */
+.tech-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(11,15,26,.12);
+  background: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color .2s var(--ease), background .2s var(--ease);
+}
+.tech-option:hover { border-color: rgba(46,107,255,.4); }
+.tech-option input { width: 15px; height: 15px; accent-color: var(--blue-lift); margin: 0; }
+.tech-option:has(input:checked) { background: rgba(46,107,255,.07); border-color: rgba(46,107,255,.45); }
+
+.admin code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: rgba(11,15,26,.05);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+.admin a { color: var(--blue); }
+
+@media (max-width: 720px) {
+  .tech-form, .tech-form.add { grid-template-columns: 1fr; }
+  .tech-row { align-items: flex-start; }
+}
