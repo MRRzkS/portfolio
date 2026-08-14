@@ -342,6 +342,21 @@
 .inline-check { display: flex; align-items: center; gap: 7px; font-size: 13px; white-space: nowrap; }
 .inline-check input { width: 16px; height: 16px; accent-color: var(--blue-lift); }
 
+/* The icon field spans the whole form width so it does not disturb the
+   name/category/order grid above it. */
+.tech-icon-field {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+  align-items: center;
+}
+.tech-icon-field input { min-width: 0; padding: 9px 12px; border-radius: var(--r-sm); border: 1px solid rgba(11,15,26,.14); background: #fff; font: inherit; font-size: 14px; }
+.tech-icon-upload { display: flex; gap: 8px; align-items: center; }
+.tech-icon-preview { width: 28px; height: 28px; border-radius: 7px; object-fit: contain; background: #fff; border: 1px solid rgba(11,15,26,.1); }
+.tech-row-icon { width: 20px; height: 20px; border-radius: 5px; object-fit: contain; background: #fff; border: 1px solid rgba(11,15,26,.1); flex-shrink: 0; }
+.tech-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue-lift); flex-shrink: 0; }
+
 .field-error.full { flex: 1 1 100%; }
 
 /* --------------------------------------------------- attaching tech */

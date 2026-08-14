@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-const CONTACT_EMAIL = 'rienchy.razak@email.com';
+const CONTACT_EMAIL = 'rienchy.razak@gmail.com';
 const GITHUB_URL = 'https://github.com/MRRzkS';
 const LINKEDIN_URL = 'https://linkedin.com/in/rienchy-razak';
 
@@ -28,22 +28,23 @@ export function About({ projectCount }: AboutProps) {
           <div>
             <p>
               I am in my fifth semester of Informatics Engineering at{' '}
-              <strong>Universitas Pancasila</strong>, and currently in the backend track of{' '}
+              <strong>Universitas Pancasila</strong>, and I am currently on the backend track of{' '}
               <strong>Maxy Academy&rsquo;s Digital Career Bootcamp</strong>.
             </p>
             <p>
-              The work I am proudest of is rarely the feature. It is the retry that does not
-              double-charge, the permission that the API respects as strictly as the interface, the
-              callback that arrives twice and changes nothing the second time.
+              The parts I enjoy most are the ones that break quietly. A payment that runs twice when
+              a worker restarts. A role that can reach an endpoint it should not. A webhook that
+              arrives, and then arrives again. I like building the checks that stop those from
+              happening, and the logging that shows they did not.
             </p>
             <p>
-              I write so the next person to read the code does not have to reconstruct my reasoning.
-              Comments explain why, names explain what, and anything clever gets rewritten until it
-              is plain.
+              When I write code I try to make it easy on the next person. I explain why something is
+              there, I name things for what they do, and if a piece is clever I rewrite it until it
+              is just clear.
             </p>
             <p>
-              Looking for an internship where I can work on backend systems with people who will
-              tell me when I am wrong.
+              I am looking for a backend internship where I can work with people who will tell me
+              when I am wrong, because that is how I get better.
             </p>
           </div>
 

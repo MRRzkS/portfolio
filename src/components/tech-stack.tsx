@@ -33,7 +33,7 @@ export function TechStack({ items }: TechStackProps) {
               <ul>
                 {column.items.map((item) => (
                   <li key={item.id}>
-                    <TechIcon name={item.name} />
+                    <TechIcon name={item.name} iconUrl={item.icon_url} />
                     <span>{item.name}</span>
                   </li>
                 ))}

@@ -18,6 +18,8 @@ export interface TechStackItem {
   name: string;
   category: TechCategory;
   sort_order: number;
+  /** Brand logo URL, or null to fall back to the generated mark in brand-marks.ts. */
+  icon_url: string | null;
 }
 
 export interface Project {

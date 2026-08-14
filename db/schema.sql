@@ -69,6 +69,9 @@ alter table tech_stack add column if not exists name         text;
 alter table tech_stack add column if not exists category     text;
 alter table tech_stack add column if not exists sort_order   integer default 0;
 alter table tech_stack add column if not exists is_published boolean default true;
+-- Brand logo for the stack section. Null means "use the generated mark from
+-- brand-marks.ts", so every existing row keeps rendering without a change.
+alter table tech_stack add column if not exists icon_url      text;
 
 create table if not exists project_tech (
   project_id uuid not null references projects (id)   on delete cascade,
@@ -316,5 +319,44 @@ begin
       on storage.objects for delete
       to authenticated
       using (bucket_id = 'covers')
+  $p$;
+
+  -- A second bucket for technology logos. Same public-read, owner-write shape
+  -- as covers, kept separate so a cover upload cannot land in the icon list.
+  insert into storage.buckets (id, name, public)
+  values ('tech-icons', 'tech-icons', true)
+  on conflict (id) do update set public = true;
+
+  drop policy if exists "anyone reads tech-icons"   on storage.objects;
+  drop policy if exists "owner uploads tech-icons"  on storage.objects;
+  drop policy if exists "owner replaces tech-icons" on storage.objects;
+  drop policy if exists "owner deletes tech-icons" on storage.objects;
+
+  execute $p$
+    create policy "anyone reads tech-icons"
+      on storage.objects for select
+      using (bucket_id = 'tech-icons')
+  $p$;
+
+  execute $p$
+    create policy "owner uploads tech-icons"
+      on storage.objects for insert
+      to authenticated
+      with check (bucket_id = 'tech-icons')
+  $p$;
+
+  execute $p$
+    create policy "owner replaces tech-icons"
+      on storage.objects for update
+      to authenticated
+      using (bucket_id = 'tech-icons')
+      with check (bucket_id = 'tech-icons')
+  $p$;
+
+  execute $p$
+    create policy "owner deletes tech-icons"
+      on storage.objects for delete
+      to authenticated
+      using (bucket_id = 'tech-icons')
   $p$;
 end $$;

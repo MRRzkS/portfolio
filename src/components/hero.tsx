@@ -39,9 +39,9 @@ export function Hero() {
           </p>
 
           <p className="lede rise d3">
-            Fifth-semester Informatics student in Depok. Most of what interests me sits at the
-            boundary where something goes wrong: a process that dies between two writes, a role
-            that reaches an endpoint it should not, a callback that arrives twice.
+            Fifth-semester Informatics student in Depok. I am drawn to the failure cases most people
+            avoid &mdash; the worker that crashes between two database writes, the endpoint a role
+            should never have reached, the webhook that fires twice. I like making those behave.
           </p>
 
           <div className="actions rise d4">

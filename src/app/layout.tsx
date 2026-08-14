@@ -44,10 +44,32 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
+/** Structured data so a recruiter (or search engine) reading the shared link gets
+ *  a machine-readable identity, not just the rendered page. */
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Muhammad Rienchy Razak Simatupang',
+  jobTitle: 'Backend Software Engineer (internship)',
+  url: siteUrl,
+  email: 'rienchy.razak@gmail.com',
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'Universitas Pancasila' },
+    { '@type': 'Organization', name: 'Maxy Academy' },
+  ],
+  sameAs: ['https://github.com/MRRzkS', 'https://linkedin.com/in/rienchy-razak'],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${manrope.variable} ${jetbrains.variable}`}>
-      <body>{children}</body>
+      <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

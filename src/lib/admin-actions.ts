@@ -20,6 +20,7 @@ export interface ActionResult {
 }
 
 const COVERS_BUCKET = 'covers';
+const TECH_ICONS_BUCKET = 'tech-icons';
 
 /**
  * Every mutation below starts by confirming a user. That check is redundant
@@ -227,6 +228,36 @@ export async function uploadCover(
   return { url: data.publicUrl };
 }
 
+/** Technology logos land in their own bucket, separate from cover images, so
+ *  the two lists can never cross. Shares the same server-side checks. */
+export async function uploadTechIcon(
+  _previous: { url?: string; error?: string },
+  formData: FormData,
+): Promise<{ url?: string; error?: string }> {
+  await requireUser();
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: 'Choose an image first.' };
+  }
+
+  const problem = validateImage(file);
+  if (problem) return { error: problem };
+
+  const extension = file.type.split('/')[1].replace('jpeg', 'jpg');
+  const path = `${crypto.randomUUID()}.${extension}`;
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.storage
+    .from(TECH_ICONS_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: false });
+
+  if (error) return { error: `Upload failed: ${error.message}` };
+
+  const { data } = supabase.storage.from(TECH_ICONS_BUCKET).getPublicUrl(path);
+  return { url: data.publicUrl };
+}
+
 // =====================================================================
 // Tech stack
 // =====================================================================
@@ -250,6 +281,7 @@ export async function saveTech(
     category: formData.get('category'),
     sort_order: formData.get('sort_order') ?? 0,
     is_published: formData.get('is_published') === 'on',
+    icon_url: (formData.get('icon_url') as string | null) || null,
   });
 
   if (!parsed.success) {

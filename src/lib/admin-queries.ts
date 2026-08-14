@@ -54,6 +54,7 @@ export interface AdminTech {
   category: TechCategory;
   sort_order: number;
   is_published: boolean;
+  icon_url: string | null;
 }
 
 export async function getAllTech(): Promise<AdminTech[]> {
@@ -61,7 +62,7 @@ export async function getAllTech(): Promise<AdminTech[]> {
 
   const { data, error } = await supabase
     .from('tech_stack')
-    .select('id, name, category, sort_order, is_published')
+    .select('id, name, category, sort_order, is_published, icon_url')
     .order('sort_order', { ascending: true })
     .returns<AdminTech[]>();
 

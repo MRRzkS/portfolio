@@ -104,6 +104,20 @@ img, svg, video { max-width: 100%; display: block; }
     0 12px 40px rgba(5, 7, 15, .34);
 }
 
+/* Once scrolled away from the dark hero, the page is light, so the translucent
+   glass pill (white-on-white) is unreadable. A solid dark fill keeps the mark
+   and links legible. The transition is on the pill so the swap is smooth. */
+.nav.scrolled .nav-pill {
+  background: rgba(9, 13, 27, .92);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border-color: rgba(255, 255, 255, .1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .16),
+    0 12px 40px rgba(5, 7, 15, .42);
+  transition: background .3s var(--ease), border-color .3s var(--ease);
+}
+
 .nav .mark {
   text-decoration: none;
   font-weight: 800;
@@ -818,6 +832,12 @@ ol.steps li::before {
   .nav-links { display: none; }
   .nav-cta { padding: 8px 15px; font-size: 12.5px; }
 
+  /* Long unbroken strings (slugs, URLs, code) are the usual cause of content
+     running off the edge. Letting them wrap kills the horizontal overflow. */
+  .lede, .desc, .prose, .sec-head p, .foot-cta p, .quote p, .k, .metric .k {
+    overflow-wrap: anywhere;
+  }
+
   .hero { padding: 116px 0 78px; }
   .hero::before { width: 440px; height: 440px; top: -190px; left: -140px; }
   .hero::after  { width: 380px; height: 380px; bottom: -200px; right: -140px; }
@@ -972,7 +992,7 @@ a:focus-visible, button:focus-visible {
   box-shadow: var(--lift);
   margin-bottom: 44px;
 }
-.cover img { width: 100%; height: auto; }
+.cover img { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
 
 .quote {
   padding: 26px 28px;
