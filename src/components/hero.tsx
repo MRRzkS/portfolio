@@ -23,7 +23,7 @@ export function Hero() {
         <div>
           <div className="badge rise d1">
             <span className="pulse" />
-            Open to internships
+            Open to work
           </div>
 
           <h1 className="rise d2">
