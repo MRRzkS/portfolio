@@ -12,10 +12,24 @@ const LINKS = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
   // Leaving the page should not leave the panel hanging open behind the next one.
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    function onScroll() {
+      // Past the hero (about 80% of a phone viewport) the page is light, and a
+      // translucent white pill becomes invisible. A solid background keeps the
+      // links legible without changing anything at the top of the page.
+      setScrolled(window.scrollY > 120);
+    }
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -29,7 +43,7 @@ export function SiteNav() {
   }, [open]);
 
   return (
-    <nav className="nav">
+    <nav className={scrolled ? 'nav scrolled' : 'nav'}>
       <div className="nav-pill">
         <Link className="mark" href="/">
           RAZAK<span>.</span>

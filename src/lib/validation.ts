@@ -25,14 +25,25 @@ const optionalText = trimmed.max(4000).optional().or(z.literal('')).transform((v
   value ? value : null,
 );
 
+/**
+ * A link the owner typed. Many people omit the scheme, so `github.com/foo`
+ * is accepted and normalised to `https://github.com/foo` rather than rejected.
+ * The scheme is added only when a recognizable host follows, so a stray value
+ * is still caught instead of being silently saved.
+ */
 const optionalUrl = trimmed
   .max(500)
   .optional()
   .or(z.literal(''))
-  .transform((value) => (value ? value : null))
+  .transform((value) => {
+    if (!value) return null;
+    if (/^https?:\/\//i.test(value)) return value;
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(value)) return `https://${value}`;
+    return value;
+  })
   .refine(
-    (value) => value === null || /^https?:\/\/\S+$/.test(value),
-    'Links must start with http:// or https://',
+    (value) => value === null || /^https?:\/\/\S+$/i.test(value),
+    'Links must be a URL, e.g. https://github.com/you',
   );
 
 export const metricSchema = z.object({
@@ -108,6 +119,9 @@ export const techSchema = z.object({
   category: z.enum(['backend', 'frontend', 'database', 'infrastructure', 'tooling']),
   sort_order: z.coerce.number().int().min(0).max(9999),
   is_published: z.boolean(),
+  // Optional brand logo. Reuses the same scheme-tolerant normaliser as project
+  // links, so a bare "cdn.example.com/php.svg" is accepted and stored whole.
+  icon_url: optionalUrl.optional(),
 });
 
 export type TechInput = z.infer<typeof techSchema>;
