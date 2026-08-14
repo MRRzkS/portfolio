@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   deleteTech,
@@ -14,36 +14,47 @@ import { CATEGORY_LABEL, CATEGORY_ORDER } from '@/lib/types';
 
 const EMPTY: ActionResult = {};
 
-/** One icon field: a URL box plus an uploader that fills the box with the
- *  public URL. `state` carries the saved value so the preview tracks it. */
-function IconField({
-  defaultValue,
-}: {
-  defaultValue: string | null;
-}) {
+/**
+ * One icon field: a URL box plus an uploader. The upload runs through a
+ * transition rather than a nested form, because a form inside the tech edit
+ * form is invalid HTML and silently fails to submit. On success the public URL
+ * is written into local state and the box, so the save action picks it up.
+ */
+function IconField({ defaultValue }: { defaultValue: string | null }) {
   const [url, setUrl] = useState(defaultValue ?? '');
-  const [upload, uploadAction, uploading] = useActionState(uploadTechIcon, {});
-  const resolved = upload.url ?? url;
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, startUpload] = useTransition();
+
+  function upload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    const formData = new FormData();
+    formData.set('file', file);
+    startUpload(async () => {
+      const result = await uploadTechIcon({}, formData);
+      if (result.error) setError(result.error);
+      else if (result.url) setUrl(result.url);
+    });
+  }
 
   return (
     <div className="tech-icon-field">
       <input
         name="icon_url"
-        value={resolved}
+        value={url}
         onChange={(event) => setUrl(event.target.value)}
         placeholder="Brand logo URL (optional)"
         aria-label="Icon URL"
       />
-      <form action={uploadAction} className="tech-icon-upload">
-        <input type="file" name="file" accept={ALLOWED_IMAGE_TYPES.join(',')} />
-        <button className="admin-btn ghost small" type="submit" disabled={uploading}>
-          {uploading ? 'Uploading…' : 'Upload'}
-        </button>
-      </form>
-      {upload.error && <em className="field-error">{upload.error}</em>}
-      {resolved && (
+      <label className="tech-icon-upload">
+        <input type="file" accept={ALLOWED_IMAGE_TYPES.join(',')} onChange={upload} hidden />
+        <span className="admin-btn ghost small">{uploading ? 'Uploading…' : 'Upload'}</span>
+      </label>
+      {error && <em className="field-error">{error}</em>}
+      {url && (
         // eslint-disable-next-line @next/next/no-img-element -- admin preview of an uploaded logo
-        <img className="tech-icon-preview" src={resolved} alt="" />
+        <img className="tech-icon-preview" src={url} alt="" />
       )}
     </div>
   );

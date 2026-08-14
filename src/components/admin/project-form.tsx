@@ -35,6 +35,16 @@ export function ProjectForm({ project, allTech, selectedTechIds }: ProjectFormPr
 
   const error = (field: string) => state.fieldErrors?.[field];
 
+  // Fields with no inline error below. If one of them trips the schema, list
+  // it here so "Some fields need attention" is never silent.
+  const shownFields = [
+    'title', 'slug', 'subtitle', 'situation', 'task', 'action', 'metrics',
+    'repo_url', 'live_url', 'kind', 'limitation', 'cover_image_url',
+  ];
+  const hiddenErrors = Object.entries(state.fieldErrors ?? {}).filter(
+    ([field]) => !shownFields.includes(field),
+  );
+
   return (
     <>
       <div className="admin-head">
@@ -92,6 +102,7 @@ export function ProjectForm({ project, allTech, selectedTechIds }: ProjectFormPr
               placeholder="Backend &middot; Self-directed"
             />
             <small>Shown above the title and on the card.</small>
+            {error('kind') && <em className="field-error">{error('kind')}</em>}
           </label>
         </section>
 
@@ -135,6 +146,7 @@ export function ProjectForm({ project, allTech, selectedTechIds }: ProjectFormPr
             <small>
               Optional, and worth writing. Naming a boundary yourself reads as confidence.
             </small>
+            {error('limitation') && <em className="field-error">{error('limitation')}</em>}
           </label>
         </section>
 
@@ -208,6 +220,9 @@ export function ProjectForm({ project, allTech, selectedTechIds }: ProjectFormPr
               placeholder="https://"
             />
             <small>Leave empty and the case study renders without a cover.</small>
+            {error('cover_image_url') && (
+              <em className="field-error">{error('cover_image_url')}</em>
+            )}
           </label>
 
           {upload.error && <em className="field-error">{upload.error}</em>}
@@ -287,12 +302,20 @@ export function ProjectForm({ project, allTech, selectedTechIds }: ProjectFormPr
 
         <div className="admin-actions">
           <button className="admin-btn primary" type="submit" disabled={pending}>
-            {pending ? 'Saving\u2026' : 'Save and publish changes'}
+            {pending ? 'Saving…' : 'Save and publish changes'}
           </button>
           <Link className="admin-btn ghost" href="/admin">
             Cancel
           </Link>
         </div>
+
+        {hiddenErrors.length > 0 && (
+          <ul className="field-error-list" role="alert">
+            {hiddenErrors.map(([field, message]) => (
+              <li key={field}>{message}</li>
+            ))}
+          </ul>
+        )}
       </form>
 
       {/* Kept outside the form above: nested forms are invalid HTML, and the

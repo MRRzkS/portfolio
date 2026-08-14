@@ -20,9 +20,8 @@ export function SiteNav() {
 
   useEffect(() => {
     function onScroll() {
-      // Past the hero (about 80% of a phone viewport) the page is light, and a
-      // translucent white pill becomes invisible. A solid background keeps the
-      // links legible without changing anything at the top of the page.
+      // Past the dark hero the page behind is light. The pill stays glass, but
+      // a dark-tinted glass with light text is the legible choice there.
       setScrolled(window.scrollY > 120);
     }
 

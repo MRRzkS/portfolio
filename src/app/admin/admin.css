@@ -205,6 +205,17 @@
   border: 1px solid rgba(194,24,60,.2);
   margin-bottom: 18px;
 }
+.field-error-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 13px 16px;
+  border-radius: var(--r-sm);
+  background: rgba(194,24,60,.06);
+  border: 1px solid rgba(194,24,60,.2);
+  color: #C2183C;
+  font-size: 13px;
+}
+.field-error-list li + li { margin-top: 5px; }
 
 .metrics { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
 .metric-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; }

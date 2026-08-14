@@ -27,11 +27,11 @@ export function Hero() {
           </div>
 
           <h1 className="rise d2">
-            I build systems
+            Software engineer building
             <br />
-            that <span className="grad">stay correct</span>
+            dependable <span className="grad">full-stack</span>
             <br />
-            when things fail.
+            web applications.
           </h1>
 
           <p className="role rise d3">
@@ -39,9 +39,11 @@ export function Hero() {
           </p>
 
           <p className="lede rise d3">
-            Fifth-semester Informatics student in Depok. I am drawn to the failure cases most people
-            avoid &mdash; the worker that crashes between two database writes, the endpoint a role
-            should never have reached, the webhook that fires twice. I like making those behave.
+            Fifth-semester Informatics student in Depok, currently on the backend track of Maxy
+            Academy&rsquo;s Digital Career Bootcamp. I care about building software that works the
+            way it should &mdash; fast, correct, and easy for the next person to pick up. I enjoy the
+            parts where the hard problems live: keeping data consistent, making systems behave under
+            load, and writing code that is clear enough to trust.
           </p>
 
           <div className="actions rise d4">
