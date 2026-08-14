@@ -32,19 +32,21 @@ export function About({ projectCount }: AboutProps) {
               <strong>Maxy Academy&rsquo;s Digital Career Bootcamp</strong>.
             </p>
             <p>
-              The parts I enjoy most are the ones that break quietly. A payment that runs twice when
-              a worker restarts. A role that can reach an endpoint it should not. A webhook that
-              arrives, and then arrives again. I like building the checks that stop those from
-              happening, and the logging that shows they did not.
+              Software engineering is what I want to do. I like the whole arc of it &mdash; turning a
+              messy real problem into something that runs, then making it solid enough that other
+              people can rely on it. The parts that pull me in most are the ones with real
+              consequences: a payment that must not run twice, a request that reaches the right place
+              and nowhere else, data that stays consistent when things happen at once. Getting those
+              right is the craft I enjoy.
             </p>
             <p>
-              When I write code I try to make it easy on the next person. I explain why something is
-              there, I name things for what they do, and if a piece is clever I rewrite it until it
-              is just clear.
+              I write code to be read. I explain why something is there, I name things for what they
+              do, and if a piece is clever I rewrite it until it is just clear &mdash; because the next
+              person on the project (often future me) should not have to reverse-engineer my intent.
             </p>
             <p>
-              I am looking for a backend internship where I can work with people who will tell me
-              when I am wrong, because that is how I get better.
+              I am looking for a backend internship where I can build real systems alongside people
+              who will point out what I got wrong, because that is how I get better fast.
             </p>
           </div>
 
@@ -77,7 +79,7 @@ export function SiteFooter() {
           <h2>
             Let us build something
             <br />
-            that does not break quietly.
+            worth shipping.
           </h2>
           <p>Open to backend internship placements. The fastest way to reach me is email.</p>
 
