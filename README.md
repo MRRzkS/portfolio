@@ -42,6 +42,8 @@ The refined layout uses larger body text, more space between sections, asymmetri
 
 GSAP ScrollTrigger, SplitText, and ScrambleText, Lenis, Three.js, and custom WebGL shaders power the project stack, looping 3D gallery, fluid portrait backdrop, pixel masks, stair backgrounds, gooey contact control, text gradients, and parallel page transitions. See `docs/animation-system.md` for all twenty-one requested techniques and their accessibility fallbacks.
 
+On first entry, a segmented loading line tracks preparation of fonts, visible images, project textures, and dynamic animation code. The home gallery uploads textures and compiles its shaders before the loader opens. Page links are prefetched in the background. The loader runs once per document, has a bounded timeout, and leaves the server-rendered site visible without JavaScript. Failed WebGL or image preparation uses the existing fallbacks. Preloading removes first-use setup delays; the existing renderer optimizations handle ongoing animation work.
+
 Geist is hosted locally through `next/font/local`. Its SIL Open Font License is preserved in `src/fonts/OFL.txt`. Icons use Lucide. Project screenshots are the owner's supplied images or captures of the owner's public applications; no generated artwork is used.
 
 ## Contact and deployment

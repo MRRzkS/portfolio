@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/animation";
 import { registerPageScroller } from "@/lib/page-scroll";
+import { isSiteLoading } from "@/lib/site-readiness";
 
 export function SmoothScroll() {
   useEffect(() => {
@@ -18,6 +19,7 @@ export function SmoothScroll() {
       });
       const tick = (seconds: number) => lenis.raf(seconds * 1000);
       const unregister = registerPageScroller(lenis);
+      if (isSiteLoading()) lenis.stop();
       lenis.on("scroll", ScrollTrigger.update);
       gsap.ticker.add(tick);
       return () => {

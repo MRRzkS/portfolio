@@ -2,6 +2,7 @@
 import { useEffect, useRef, type ReactNode, type PointerEvent } from "react";
 import { usePathname } from "next/navigation";
 import { gsap, ScrollTrigger } from "@/lib/animation";
+import { waitForSiteReady } from "@/lib/site-readiness";
 export function Reveal({
   children,
   className = "",
@@ -14,6 +15,9 @@ export function Reveal({
     const element = ref.current;
     if (!element) return;
     const media = gsap.matchMedia();
+    let disposed = false;
+    void waitForSiteReady().then(() => {
+      if (disposed) return;
     media.add("(prefers-reduced-motion: no-preference)", () => {
       element.classList.add("reveal-ready");
       const trigger = ScrollTrigger.create({
@@ -27,7 +31,8 @@ export function Reveal({
         element.classList.remove("reveal-ready", "revealed");
       };
     });
-    return () => media.revert();
+    });
+    return () => { disposed = true; media.revert(); };
   }, []);
   return (
     <div ref={ref} className={`reveal ${className}`}>

@@ -5,10 +5,16 @@ import { Footer } from "@/components/footer";
 import { RouteFocus } from "@/components/motion";
 import { PageTransitions } from "@/components/page-motion";
 import { SmoothScroll } from "@/components/smooth-scroll";
+import { SiteLoader } from "@/components/site-loader";
+import { projects } from "@/lib/content";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import "./motion.css";
 import "./kanso.css";
+import "./loader.css";
+const preloadImages = projects.flatMap((project) => project.image ? [project.image] : []);
+const preloadRoutes = ["/", "/work", "/about", "/contact", ...projects.map((project) => `/work/${project.slug}`)];
+const bootScript = `document.documentElement.dataset.boot="loading";setTimeout(function(){if(document.documentElement.dataset.boot==="loading"){document.documentElement.dataset.boot="ready";document.dispatchEvent(new Event("site-ready"));}},8000);`;
 const geist = localFont({
   src: "../fonts/geist-latin.woff2",
   variable: "--font-geist",
@@ -33,8 +39,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={geist.variable}>
+    <html lang="en" className={geist.variable} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: bootScript }} /></head>
       <body>
+        <SiteLoader images={preloadImages} routes={preloadRoutes} />
+        <div id="site-shell" className="site-shell">
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
@@ -46,6 +55,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        </div>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Project } from "@/lib/content";
 import type { GalleryMotion } from "@/components/gallery-renderer";
 import { gsap, ScrollTrigger, wrap } from "@/lib/animation";
+import { isSiteLoading, registerPreparation } from "@/lib/site-readiness";
 
 export function ProjectGallery({ projects }: { projects: Project[] }) {
   const root = useRef<HTMLElement>(null);
@@ -33,14 +34,16 @@ export function ProjectGallery({ projects }: { projects: Project[] }) {
       try {
         const { createGalleryRenderer } = await import("./gallery-renderer");
         if (disposed || preference.matches || currentLoad !== loadVersion) return;
-        disposeRenderer = createGalleryRenderer(host!, projects.map((project) => project.image!), motion.current,
-          () => { if (!disposed) setReady(true); },
-          (next) => { if (!disposed) setIndex(next); },
-          () => { if (!disposed) setReady(false); },
-        );
+        await new Promise<void>((resolve) => {
+          disposeRenderer = createGalleryRenderer(host!, projects.map((project) => project.image!), motion.current,
+            () => { if (!disposed) setReady(true); resolve(); },
+            (next) => { if (!disposed) setIndex(next); },
+            () => { if (!disposed) setReady(false); resolve(); },
+          );
+        });
       } catch {
         // The regular image and controls remain usable when WebGL is unavailable.
-        if (!disposed) setReady(false);
+        if (!disposed && currentLoad === loadVersion) setReady(false);
       }
     }
     const visibility = ScrollTrigger.create({
@@ -54,7 +57,8 @@ export function ProjectGallery({ projects }: { projects: Project[] }) {
       },
     });
     motion.current.visible = visibility.isActive;
-    if (visibility.isActive) void loadRenderer();
+    if (isSiteLoading()) registerPreparation("gallery", loadRenderer());
+    else if (visibility.isActive) void loadRenderer();
     const media = gsap.matchMedia();
     media.add("(min-width: 900px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)", () => {
       section.classList.add("gallery-scroll");

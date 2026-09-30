@@ -33,11 +33,17 @@ Theme changes use a circular viewport reveal centered on the theme button. Both 
 
 - Reduced motion turns off Lenis, splitting, sticky scroll scenes, and WebGL. Regular images and gallery controls remain available.
 - The canvas is hidden from screen readers. The current project name, link, and labeled buttons remain normal HTML.
-- WebGL loads in a separate chunk near the gallery. Frame scheduling stops when movement settles, outside its viewport, and in background tabs. Pointer, scroll, resize, and visibility changes wake the renderers. Pixel ratio is capped at 1.5.
+- WebGL uses separate chunks prepared by the opening loader. On the home page, gallery texture uploads and shader compilation complete before the opening reveal. Frame scheduling stops when movement settles, outside its viewport, and in background tabs. Pointer, scroll, resize, and visibility changes wake the renderers. Pixel ratio is capped at 1.5.
 - Pointer effects measure and update at most once per animation frame. The timeline measures its travel on refresh. Large section reveals use opacity and transforms without full-section blur.
 - Gallery loading ignores stale imports when motion preferences change, and only the current renderer can update its controls.
 - Texture, geometry, material, listener, trigger, and renderer resources are released when leaving the page.
 - WebGL initialization, shader failure, and context loss retain the image fallback.
 - Browser verification uses Chromium software WebGL because the test environment has no attached desktop GPU.
+
+## Opening preparation
+
+`SiteLoader` shows measured asset completion on a segmented line. It decodes project textures and page images, waits for local fonts, loads animation chunks, and waits for registered scene preparation. Next.js route prefetches run in the background. Title motion starts when the opening panels lift. Scrolling and focus remain held until the reveal finishes; regular page changes do not replay the loader.
+
+Reduced motion removes the panel animation and avoids loading unused shader chunks. Failed assets and WebGL setup retain image fallbacks. A 6.5-second preparation deadline releases stalled work, with a separate parser-level safety release after 8 seconds if hydration fails. Without JavaScript, the server-rendered page stays visible.
 
 Main files: `src/lib/animation.ts`, `src/components/smooth-scroll.tsx`, `page-motion.tsx`, `project-stack.tsx`, `project-gallery.tsx`, `gallery-renderer.ts`, `journey.tsx`, `fluid-backdrop.tsx`, `fluid-renderer.ts`, `pixel-reveal.tsx`, `stair-backdrop.tsx`, `scramble-label.tsx`, `gooey-link.tsx`, `story-gradient.tsx`, and `src/app/motion.css`.

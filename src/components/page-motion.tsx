@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, SplitText } from "@/lib/animation";
 import { pausePageScroll, resetPageScroll, resumePageScroll } from "@/lib/page-scroll";
 import { finishThemeTransition } from "@/lib/theme-transition";
+import { waitForSiteReady } from "@/lib/site-readiness";
 
 // Keep Next.js routing and prefetching, and let the browser blend the two page views.
 export function PageTransitions() {
@@ -131,7 +132,7 @@ export function PageMotion({ children }: { children: ReactNode }) {
     const media = gsap.matchMedia();
     let disposed = false;
     // Wait for the real font before measuring and splitting text.
-    document.fonts.ready.then(() => {
+    Promise.all([document.fonts.ready, waitForSiteReady()]).then(() => {
       if (disposed) return;
       media.add("(prefers-reduced-motion: no-preference)", () => {
         const sections = Array.from(element.querySelectorAll<HTMLElement>(

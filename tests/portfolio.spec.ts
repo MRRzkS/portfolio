@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const routes = [
   "/",
@@ -12,13 +12,75 @@ const routes = [
   "/work/fly-high",
 ];
 
+test("the opening loader waits for assets, prepares the gallery, and only runs on entry", async ({ page }) => {
+  let release!: () => void;
+  const hold = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/markdownpad.webp", async (route) => { await hold; await route.continue(); });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const progress = page.getByRole("progressbar", { name: "Preparing portfolio" });
+  await expect(progress).toBeVisible();
+  await expect(page.locator("#site-shell")).toHaveAttribute("inert", "");
+  await expect(page.locator("h1")).toBeHidden();
+  await expect.poll(async () => Number(await progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
+  expect(Number(await progress.getAttribute("aria-valuenow"))).toBeLessThan(100);
+  await page.screenshot({ path: `verification/opening-loader-${test.info().project.name}.png` });
+  release();
+  await expect(page.locator("html")).toHaveAttribute("data-boot", "ready", { timeout: 10000 });
+  await expect(page.locator("#site-shell")).not.toHaveAttribute("inert", "");
+  await expect(page.locator(".gallery-stage")).toHaveClass(/gallery-ready/);
+  await expect(page.locator("h1")).toBeVisible();
+  await page.getByRole("link", { name: "Explore my work", exact: true }).click();
+  await expect(page).toHaveURL(/\/work$/);
+  await expect(progress).toBeHidden();
+});
+
+test("a failed preload releases the site with a working gallery fallback", async ({ page }) => {
+  await page.route("**/fly-high.webp", (route) => route.abort());
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-boot", "ready", { timeout: 10000 });
+  await expect(page.locator("h1")).toBeVisible();
+  await expect(page.locator("#site-shell")).not.toHaveAttribute("inert", "");
+  const gallery = page.getByRole("region", { name: "Project gallery" });
+  await gallery.scrollIntoViewIfNeeded();
+  await gallery.getByRole("button", { name: "Show MarkdownPad" }).click();
+  await expect(gallery.getByRole("link", { name: "MarkdownPad", exact: true })).toBeVisible();
+  await expect(gallery.locator(".gallery-fallback img")).toBeVisible();
+});
+
+test("the site stays visible when JavaScript is unavailable", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("http://127.0.0.1:3100/");
+  await expect(page.locator("h1")).toBeVisible();
+  await expect(page.locator(".site-loader")).toBeHidden();
+  await context.close();
+});
+
+test("a stalled preload cannot keep visitors behind the loader", async ({ page }) => {
+  let release!: () => void;
+  const hold = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/markdownpad.webp", async (route) => { await hold; await route.continue(); });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("progressbar", { name: "Preparing portfolio" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-boot", "ready", { timeout: 11000 });
+  await expect(page.locator("#site-shell")).not.toHaveAttribute("inert", "");
+  await expect(page.locator("h1")).toBeVisible();
+  release();
+});
+
+async function enterSite(page: Page, route: string) {
+  const response = await page.goto(route);
+  await expect(page.locator("html")).toHaveAttribute("data-boot", "ready", { timeout: 11000 });
+  return response;
+}
+
 for (const route of routes) {
 test(`${route} renders without browser errors, missing images, or horizontal overflow`, async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-    const response = await page.goto(route);
+    const response = await enterSite(page, route);
     expect(response?.status(), route).toBe(200);
     await expect(page.locator("h1")).toBeVisible();
     const copy = await page.locator("body").innerText();
@@ -50,7 +112,7 @@ test(`${route} renders without browser errors, missing images, or horizontal ove
 }
 
 test("About gives spoken and programming languages their own showcase", async ({ page }) => {
-  await page.goto("/about");
+  await enterSite(page, "/about");
   await expect(page.locator(".toolkit-grid").getByText("TypeScript", { exact: true })).toBeAttached();
   const languages = page.getByRole("region", { name: "Spoken languages" });
   await languages.scrollIntoViewIfNeeded();
@@ -64,7 +126,7 @@ test("About gives spoken and programming languages their own showcase", async ({
 test("the project gallery loops and supports keyboard controls", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
-  await page.goto("/");
+  await enterSite(page, "/");
   const gallery = page.getByRole("region", { name: "Project gallery" });
   await gallery.scrollIntoViewIfNeeded();
   await expect(gallery.locator(".gallery-stage")).toHaveClass(/gallery-ready/);
@@ -86,7 +148,7 @@ test("the project gallery loops and supports keyboard controls", async ({ page }
 test("the gallery recovers from repeated motion changes without duplicate canvases", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
+  await enterSite(page, "/");
   const gallery = page.getByRole("region", { name: "Project gallery" });
   await gallery.scrollIntoViewIfNeeded();
   for (let change = 0; change < 3; change += 1) {
@@ -114,7 +176,7 @@ test("WebGL pauses off screen and wakes when the gallery returns", async ({ page
       };
     }
   });
-  await page.goto("/");
+  await enterSite(page, "/");
   const gallery = page.getByRole("region", { name: "Project gallery" });
   await gallery.scrollIntoViewIfNeeded();
   await expect(gallery.locator(".gallery-stage")).toHaveClass(/gallery-ready/);
@@ -130,7 +192,7 @@ test("WebGL pauses off screen and wakes when the gallery returns", async ({ page
 
 test("reduced motion keeps gallery controls and complete heading text", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await enterSite(page, "/");
   await expect(page.locator("h1")).toContainText("Clear");
   await expect(page.locator("h1")).toContainText("results.");
   const gallery = page.getByRole("region", { name: "Project gallery" });
@@ -142,7 +204,7 @@ test("reduced motion keeps gallery controls and complete heading text", async ({
 });
 
 test("parallel transitions hide the scrollbar and recover from a second navigation", async ({ page, isMobile }) => {
-  await page.goto("/");
+  await enterSite(page, "/");
   await page.getByRole("link", { name: "Explore my work", exact: true }).click();
   await expect(page).toHaveURL(/\/work$/);
   await expect(page.locator("html")).toHaveCSS("overflow-y", "hidden");
@@ -160,7 +222,7 @@ test("parallel transitions hide the scrollbar and recover from a second navigati
 });
 
 test("a page opened from a scrolled view arrives at the top without scroll momentum", async ({ page, isMobile }) => {
-  await page.goto("/about");
+  await enterSite(page, "/about");
   await page.locator("footer").scrollIntoViewIfNeeded();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(700);
   if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
@@ -177,7 +239,7 @@ test("a page opened from a scrolled view arrives at the top without scroll momen
 test("the fluid surface responds to a pointer and turns off for reduced motion", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
-  await page.goto("/");
+  await enterSite(page, "/");
   const surface = page.locator(".fluid-backdrop");
   await expect(surface).toHaveClass(/fluid-ready/);
   const canvas = surface.locator("canvas");
@@ -197,7 +259,7 @@ test("the fluid surface responds to a pointer and turns off for reduced motion",
 });
 
 test("pixel masks reveal the project image as it enters view", async ({ page }) => {
-  await page.goto("/work/markdownpad");
+  await enterSite(page, "/work/markdownpad");
   const image = page.locator(".pixel-reveal");
   await image.scrollIntoViewIfNeeded();
   await expect(image).toHaveClass(/pixel-ready/);
@@ -211,7 +273,7 @@ test("pixel masks reveal the project image as it enters view", async ({ page }) 
 
 test("the story remains readable and the gooey contact link works with a keyboard", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await enterSite(page, "/");
   const story = page.getByRole("region", { name: "My approach" });
   await story.scrollIntoViewIfNeeded();
   await expect(story).toContainText("First, understand the problem.");
@@ -224,7 +286,7 @@ test("the story remains readable and the gooey contact link works with a keyboar
 });
 
 test("internal pages blend through a view transition and reduced motion skips it", async ({ page, isMobile }) => {
-  await page.goto("/");
+  await enterSite(page, "/");
   await page.evaluate(() => {
     const start = document.startViewTransition;
     document.documentElement.dataset.transitionCount = "0";
@@ -251,7 +313,7 @@ test("project filters include requested replacements and lead to their case stud
   page,
   isMobile,
 }) => {
-  await page.goto("/work");
+  await enterSite(page, "/work");
   await expect(page.locator(".project-card")).toHaveCount(5);
   if (!isMobile) {
     const card = page.locator(".project-card").first();
@@ -280,7 +342,7 @@ test("project filters include requested replacements and lead to their case stud
 test("project numbers explain the features and test payment limits", async ({
   page,
 }) => {
-  await page.goto("/work/kyklos");
+  await enterSite(page, "/work/kyklos");
   await page.locator(".metric-source summary").first().click();
   await expect(page.locator(".metric-source").first()).toContainText(
     "access rules",
@@ -299,7 +361,7 @@ test("contact validates fields and hands a valid message to an email draft", asy
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/contact");
+  await enterSite(page, "/contact");
   const help = page.locator(".help-panel");
   await help.locator("summary").focus();
   await page.keyboard.press("Enter");
@@ -340,7 +402,7 @@ test("contact validates fields and hands a valid message to an email draft", asy
 });
 
 test("theme changes reveal a circle from the button and release it before navigation", async ({ page, isMobile }) => {
-  await page.goto("/about");
+  await enterSite(page, "/about");
   const toggle = page.getByRole("button", { name: "Switch to dark theme" });
   const bounds = (await toggle.boundingBox())!;
   await toggle.focus();
@@ -367,7 +429,7 @@ test("theme changes reveal a circle from the button and release it before naviga
 
 test("theme changes stay instant with reduced motion or no view transition support", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/contact");
+  await enterSite(page, "/contact");
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator("html")).not.toHaveClass(/theme-transitioning/);
@@ -382,7 +444,7 @@ test("theme and responsive navigation remain usable", async ({
   page,
   isMobile,
 }) => {
-  await page.goto("/");
+  await enterSite(page, "/");
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   if (isMobile) {
@@ -406,7 +468,7 @@ test("reduced motion exposes the full timeline without scroll animation", async 
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/about");
+  await enterSite(page, "/about");
   await page
     .getByRole("heading", { name: "Putting lessons to work." })
     .scrollIntoViewIfNeeded();
@@ -427,7 +489,7 @@ test("desktop timeline unfolds to the final experience card", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "Mobile displays a stacked timeline.");
-  await page.goto("/about");
+  await enterSite(page, "/about");
   await expect(page.locator(".journey")).toHaveClass(/emaki-enabled/);
   await page.evaluate(() => {
     const section = document.querySelector(".journey")!;

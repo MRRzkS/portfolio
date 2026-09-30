@@ -79,7 +79,9 @@ export function createGalleryRenderer(
       materials[index].uniforms.uImageAspect.value = image.width / image.height;
       needsRender = true;
       loaded += 1;
-      if (loaded === images.length && !failed) onReady();
+      if (loaded === images.length && !failed) {
+        void prepare().catch(() => { if (!disposed) { failed = true; onFailure(); } });
+      }
       requestRender();
     }, undefined, () => { if (!disposed) { failed = true; onFailure(); } });
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -101,6 +103,12 @@ export function createGalleryRenderer(
     meshes.push(mesh);
     scene.add(mesh);
   });
+
+  async function prepare() {
+    textures.forEach((texture) => renderer.initTexture(texture));
+    await renderer.compileAsync(scene, camera);
+    if (!disposed && !failed) { onReady(); needsRender = true; requestRender(); }
+  }
 
   function resize() {
     const width = host.clientWidth;
