@@ -101,18 +101,9 @@ main {
 .pixel-mask { position: absolute; inset: 0; display: none; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(6, 1fr); pointer-events: none; }
 .pixel-ready .pixel-mask { display: grid; }
 .reveal-pixel { background: var(--card); margin: -0.5px; }
-.gooey-link { position: relative; isolation: isolate; overflow: visible; }
-.gooey-definitions { position: absolute; pointer-events: none; }
-.gooey-surface { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
-.gooey-core, .gooey-drop { background: var(--ink); border-radius: 50%; grid-area: 1 / 1; }
-.gooey-core { width: 54px; height: 54px; }
-.gooey-drop { width: 32px; height: 32px; transform: scale(0.5); }
-.gooey-link > svg:not(.gooey-definitions) { position: relative; z-index: 1; color: var(--bg); }
 @media (max-width: 699px) { .story-section { padding-block: 80px; } }
 @media (prefers-reduced-motion: reduce) {
   .fluid-backdrop, .pixel-mask { display: none !important; }
-  .gooey-surface { filter: none !important; }
-  .gooey-drop { display: none; }
   .story-word { background: none; -webkit-text-fill-color: var(--ink); opacity: 1; }
 }
 

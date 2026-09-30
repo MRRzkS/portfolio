@@ -360,6 +360,38 @@ test("the story remains readable and the gooey contact link works with a keyboar
   await expect(page).toHaveURL(/\/contact$/);
 });
 
+test("buttons share a gooey response without blocking clicks, keyboard focus, or reduced motion", async ({ page, isMobile }) => {
+  await enterSite(page, "/work");
+  const surface = page.locator(".button-gooey");
+  const filter = page.getByRole("button", { name: "Developer Tools", exact: true });
+  if (isMobile) {
+    await filter.tap();
+    await expect(filter).toHaveAttribute("aria-pressed", "true");
+    await expect(surface).toHaveAttribute("data-active", "false");
+  } else {
+    await filter.hover();
+    await expect(surface).toHaveAttribute("data-active", "true");
+    await expect(surface).toHaveCSS("pointer-events", "none");
+    await page.mouse.down();
+    await expect(surface).toHaveAttribute("data-pressed", "true");
+    await page.mouse.up();
+    await expect(filter).toHaveAttribute("aria-pressed", "true");
+    await page.mouse.move(0, 0);
+    await expect(surface).toHaveAttribute("data-active", "false");
+  }
+  await expect(page.getByRole("link", { name: /MarkdownPad/ }).first()).toBeVisible();
+  const all = page.getByRole("button", { name: "All work", exact: false });
+  await page.keyboard.press("Tab");
+  await all.focus();
+  await expect(surface).toHaveAttribute("data-active", "true");
+  await page.keyboard.press("Enter");
+  await expect(all).toHaveAttribute("aria-pressed", "true");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(surface).toBeHidden();
+  await filter.click();
+  await expect(filter).toHaveAttribute("aria-pressed", "true");
+});
+
 test("internal pages blend through a view transition and reduced motion skips it", async ({ page, isMobile }) => {
   await enterSite(page, "/");
   await page.evaluate(() => {

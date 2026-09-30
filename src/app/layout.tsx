@@ -6,12 +6,14 @@ import { RouteFocus } from "@/components/motion";
 import { PageTransitions } from "@/components/page-motion";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { SiteLoader } from "@/components/site-loader";
+import { ButtonGooey } from "@/components/button-gooey";
 import { projects } from "@/lib/content";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import "./motion.css";
 import "./kanso.css";
 import "./loader.css";
+import "./buttons.css";
 const preloadImages = projects.flatMap((project) => project.image ? [project.image] : []);
 const preloadRoutes = ["/", "/work", "/about", "/contact", ...projects.map((project) => `/work/${project.slug}`)];
 const bootScript = `document.documentElement.dataset.boot="loading";setTimeout(function(){if(document.documentElement.dataset.boot==="loading"){document.documentElement.dataset.boot="ready";document.dispatchEvent(new Event("site-ready"));}},8000);`;
@@ -51,6 +53,7 @@ export default function RootLayout({
         <RouteFocus />
         <PageTransitions />
         <SmoothScroll />
+        <ButtonGooey />
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>
