@@ -47,11 +47,22 @@ h1, .hero h1, .case-heading h1 { font-weight: 800; letter-spacing: -0.04em; }
 }
 .mobile-nav, .metric-source[open] > p, .help-panel[open] > p {
   background-color: var(--glass);
-  background-image: url("/grain.svg");
+  background-image: none;
+  isolation: isolate;
   backdrop-filter: var(--apple-liquid-blur);
   -webkit-backdrop-filter: var(--apple-liquid-blur);
   border: 0.5px solid var(--border);
   box-shadow: inset 0 -0.5px 0 rgb(255 255 255 / 22%), var(--surface-shadow);
+}
+.metric-source[open] > p, .help-panel[open] > p { position: relative; }
+.mobile-nav {
+  position: absolute; top: calc(100% + 8px); inset-inline: 24px;
+  border-radius: 24px; padding: 12px 20px 18px;
+  background-color: color-mix(in srgb, var(--bg) 97%, transparent);
+}
+.mobile-nav::before, .metric-source[open] > p::before, .help-panel[open] > p::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background-image: url("/grain.svg"); opacity: 0.018; pointer-events: none; z-index: -1;
 }
 .action-link, .text-link, .back-link { font-size: 14px; min-height: 44px; }
 .action-link.primary { padding: 16px 26px; }

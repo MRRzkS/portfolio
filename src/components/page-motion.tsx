@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger, SplitText } from "@/lib/animation";
 import { pausePageScroll, resetPageScroll, resumePageScroll } from "@/lib/page-scroll";
 import { finishThemeTransition } from "@/lib/theme-transition";
-import { waitForSiteReady } from "@/lib/site-readiness";
+import { waitForPageReady } from "@/lib/site-readiness";
 
 // Keep Next.js routing and prefetching, and let the browser blend the two page views.
 export function PageTransitions() {
@@ -15,9 +15,21 @@ export function PageTransitions() {
   const active = useRef<ViewTransition | null>(null);
 
   useLayoutEffect(() => {
-    if (finishNavigation.current) resetPageScroll();
-    finishNavigation.current?.();
-    finishNavigation.current = null;
+    const complete = finishNavigation.current;
+    if (!complete) return;
+    resetPageScroll();
+    const images = Array.from(document.getElementById("main-content")?.querySelectorAll("img") ?? [])
+      .filter((image) => {
+        const bounds = image.getBoundingClientRect();
+        return bounds.top < window.innerHeight && bounds.bottom > 0;
+      });
+    // Capture the incoming view with its font and visible images already decoded.
+    void Promise.allSettled([document.fonts.ready, ...images.map((image) => image.decode())]).then(() => {
+      if (finishNavigation.current !== complete) return;
+      resetPageScroll();
+      finishNavigation.current = null;
+      complete();
+    });
   }, [pathname]);
 
   useEffect(() => {
@@ -79,7 +91,7 @@ export function PageTransitions() {
           new Promise<void>((resolve) => {
             finishNavigation.current = resolve;
             // Release the visual hold if a route takes longer than expected.
-            timeout = setTimeout(() => { resetPageScroll(); resolve(); }, 2500);
+            timeout = setTimeout(() => { finishNavigation.current = null; resetPageScroll(); resolve(); }, 2500);
             router.push(
               destination.pathname + destination.search + destination.hash,
               { scroll: false },
@@ -94,6 +106,7 @@ export function PageTransitions() {
           clearTimeout(timeout);
           active.current = null;
           document.documentElement.classList.remove("route-transitioning");
+          document.dispatchEvent(new Event("route-ready"));
           resumePageScroll(destination.hash);
           if (content) {
             content.inert = false;
@@ -109,6 +122,7 @@ export function PageTransitions() {
       finishNavigation.current?.();
       active.current?.skipTransition();
       document.documentElement.classList.remove("route-transitioning");
+      document.dispatchEvent(new Event("route-ready"));
       resumePageScroll();
       if (content) {
         content.inert = false;
@@ -132,7 +146,7 @@ export function PageMotion({ children }: { children: ReactNode }) {
     const media = gsap.matchMedia();
     let disposed = false;
     // Wait for the real font before measuring and splitting text.
-    Promise.all([document.fonts.ready, waitForSiteReady()]).then(() => {
+    Promise.all([document.fonts.ready, waitForPageReady()]).then(() => {
       if (disposed) return;
       media.add("(prefers-reduced-motion: no-preference)", () => {
         const sections = Array.from(element.querySelectorAll<HTMLElement>(
@@ -152,7 +166,7 @@ export function PageMotion({ children }: { children: ReactNode }) {
         const splits: SplitText[] = [];
         const headings = element.querySelectorAll<HTMLElement>("h1, h2");
         for (const heading of headings) {
-          if (heading.matches("h1") && element.classList.contains("native-entry")) continue;
+          if (element.classList.contains("native-entry") && heading.getBoundingClientRect().top < window.innerHeight) continue;
           const readableText = heading.innerText.replace(/\s+/g, " ").trim();
           splits.push(SplitText.create(heading, {
             type: "words",

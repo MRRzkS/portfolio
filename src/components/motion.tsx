@@ -2,7 +2,7 @@
 import { useEffect, useRef, type ReactNode, type PointerEvent } from "react";
 import { usePathname } from "next/navigation";
 import { gsap, ScrollTrigger } from "@/lib/animation";
-import { waitForSiteReady } from "@/lib/site-readiness";
+import { waitForPageReady } from "@/lib/site-readiness";
 export function Reveal({
   children,
   className = "",
@@ -16,7 +16,7 @@ export function Reveal({
     if (!element) return;
     const media = gsap.matchMedia();
     let disposed = false;
-    void waitForSiteReady().then(() => {
+    void waitForPageReady().then(() => {
       if (disposed) return;
     media.add("(prefers-reduced-motion: no-preference)", () => {
       element.classList.add("reveal-ready");
@@ -43,9 +43,11 @@ export function Reveal({
 export function Tilt({
   children,
   className = "",
+  enabled = true,
 }: {
   children: ReactNode;
   className?: string;
+  enabled?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
@@ -53,6 +55,7 @@ export function Tilt({
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
   function move(event: PointerEvent<HTMLDivElement>) {
     if (
+      !enabled ||
       event.pointerType !== "mouse" ||
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     )

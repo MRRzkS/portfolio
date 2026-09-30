@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Project } from "@/lib/content";
 import type { GalleryMotion } from "@/components/gallery-renderer";
 import { gsap, ScrollTrigger, wrap } from "@/lib/animation";
-import { isSiteLoading, registerPreparation } from "@/lib/site-readiness";
+import { isSiteLoading, registerPreparation, waitForPageReady } from "@/lib/site-readiness";
 
 export function ProjectGallery({ projects }: { projects: Project[] }) {
   const root = useRef<HTMLElement>(null);
@@ -58,7 +58,7 @@ export function ProjectGallery({ projects }: { projects: Project[] }) {
     });
     motion.current.visible = visibility.isActive;
     if (isSiteLoading()) registerPreparation("gallery", loadRenderer());
-    else if (visibility.isActive) void loadRenderer();
+    else void waitForPageReady().then(() => { if (!disposed) void loadRenderer(); });
     const media = gsap.matchMedia();
     media.add("(min-width: 900px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)", () => {
       section.classList.add("gallery-scroll");

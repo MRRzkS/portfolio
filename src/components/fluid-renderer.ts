@@ -1,3 +1,5 @@
+import { isViewTransitionActive } from "@/lib/site-readiness";
+
 export type FluidInput = {
   pointer: [number, number];
   velocity: [number, number];
@@ -71,6 +73,8 @@ export function createFluidRenderer(canvas: HTMLCanvasElement, input: FluidInput
     cancelAnimationFrame(frame);
     delete input.requestRender;
     document.removeEventListener("visibilitychange", wake);
+    document.removeEventListener("route-ready", wake);
+    document.removeEventListener("theme-ready", wake);
     resizeObserver?.disconnect();
     canvas.removeEventListener("webglcontextlost", contextLost);
     gl!.useProgram(null);
@@ -153,7 +157,7 @@ export function createFluidRenderer(canvas: HTMLCanvasElement, input: FluidInput
     renderFrame = (time: number) => {
       frame = 0;
       if (disposed) return;
-      if (!input.visible || document.hidden) return;
+      if (!input.visible || document.hidden || isViewTransitionActive()) return;
       if (time - previousTime < 32) { wake(); return; }
       previousTime = time;
       if (input.scroll !== previousScroll || input.dark !== previousTheme) {
@@ -194,6 +198,8 @@ export function createFluidRenderer(canvas: HTMLCanvasElement, input: FluidInput
     };
     input.requestRender = wake;
     document.addEventListener("visibilitychange", wake);
+    document.addEventListener("route-ready", wake);
+    document.addEventListener("theme-ready", wake);
     wake();
     return dispose;
   } catch {
@@ -201,7 +207,7 @@ export function createFluidRenderer(canvas: HTMLCanvasElement, input: FluidInput
     return null;
   }
   function wake() {
-    if (!disposed && !frame && renderFrame && input.visible && !document.hidden) {
+    if (!disposed && !frame && renderFrame && input.visible && !document.hidden && !isViewTransitionActive()) {
       frame = requestAnimationFrame(renderFrame);
     }
   }

@@ -123,6 +123,58 @@ test("About gives spoken and programming languages their own showcase", async ({
   await expect(languages.getByText("Professional working level")).toBeVisible();
 });
 
+test("home cards follow scroll in both directions without hover or refresh jumps", async ({ page, isMobile }) => {
+  await enterSite(page, "/");
+  const cards = page.locator(".stack-card");
+  await expect(cards).toHaveCount(3);
+  if (isMobile) {
+    await expect(cards.first()).toHaveCSS("position", "static");
+    return;
+  }
+  const scales = await page.evaluate(async () => {
+    const stack = document.querySelector<HTMLElement>(".project-stack")!;
+    const first = stack.querySelector<HTMLElement>(".stack-card")!;
+    const shell = first.querySelector<HTMLElement>(".stack-card-shell")!;
+    const top = stack.getBoundingClientRect().top + scrollY;
+    const offset = first.offsetHeight + parseFloat(getComputedStyle(stack).rowGap);
+    const start = top + offset - innerHeight * 0.8;
+    const end = top + offset - 128;
+    const values: number[] = [];
+    for (const progress of [0, 0.25, 0.5, 0.75, 1, 0.5, 0]) {
+      window.scrollTo({ top: start + (end - start) * progress, behavior: "instant" });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      values.push(new DOMMatrixReadOnly(getComputedStyle(shell).transform).a);
+    }
+    return values;
+  });
+  for (const [index, value] of scales.entries()) {
+    expect(value).toBeCloseTo([1, 0.99, 0.98, 0.97, 0.96, 0.98, 1][index], 2);
+  }
+  const card = cards.first().locator(".project-card");
+  await card.hover({ position: { x: 80, y: 80 } });
+  await expect(card).toHaveCSS("transform", "none");
+  await expect(card.locator(".project-visual img")).toHaveCSS("transform", "none");
+  const goToMiddle = () => page.evaluate(() => {
+    const stack = document.querySelector<HTMLElement>(".project-stack")!;
+    const first = stack.querySelector<HTMLElement>(".stack-card")!;
+    const top = stack.getBoundingClientRect().top + scrollY;
+    const offset = first.offsetHeight + parseFloat(getComputedStyle(stack).rowGap);
+    window.scrollTo({ top: top + offset - (innerHeight * 0.8 + 128) / 2, behavior: "instant" });
+  });
+  await goToMiddle();
+  await expect.poll(() => cards.first().locator(".stack-card-shell").evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeCloseTo(0.98, 2);
+  await page.setViewportSize({ width: 1100, height: 900 });
+  // Allow ScrollTrigger's resize refresh to complete before sampling the new track.
+  await page.waitForTimeout(300);
+  await goToMiddle();
+  await expect.poll(() => cards.first().locator(".stack-card-shell").evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeCloseTo(0.98, 2);
+  await cards.last().getByRole("link").scrollIntoViewIfNeeded();
+  await expect(cards.last().getByRole("link")).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(cards.first()).toHaveCSS("position", "static");
+  await expect(cards.first().locator(".stack-card-shell")).toHaveCSS("transform", "none");
+});
+
 test("the project gallery loops and supports keyboard controls", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -440,6 +492,22 @@ test("theme changes stay instant with reduced motion or no view transition suppo
   await expect(page.locator("html")).not.toHaveClass(/theme-transitioning/);
 });
 
+test("theme circles hold scroll momentum and restore the portrait surface", async ({ page }) => {
+  await enterSite(page, "/");
+  const surface = page.locator(".fluid-backdrop");
+  await expect(surface).toHaveClass(/fluid-ready/);
+  for (const theme of ["dark", "light"]) {
+    await page.getByRole("button", { name: `Switch to ${theme} theme` }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expect(page.locator("html")).toHaveCSS("overflow-y", "hidden");
+    await page.mouse.wheel(0, 500);
+    await expect.poll(() => page.locator("html").getAttribute("class")).not.toMatch(/theme-transitioning/);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(surface).toBeVisible();
+    await expect(page.locator("html")).not.toHaveClass(/lenis-stopped/);
+  }
+});
+
 test("theme and responsive navigation remain usable", async ({
   page,
   isMobile,
@@ -448,7 +516,11 @@ test("theme and responsive navigation remain usable", async ({
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   if (isMobile) {
+    await expect.poll(() => page.locator("html").getAttribute("class")).not.toMatch(/theme-transitioning/);
+    const headerHeight = await page.locator("header").evaluate((element) => element.getBoundingClientRect().height);
     await page.getByRole("button", { name: "Open menu" }).click();
+    expect(await page.locator("header").evaluate((element) => element.getBoundingClientRect().height)).toBe(headerHeight);
+    await page.screenshot({ path: "verification/mobile-menu-dark-refined.png" });
     await page
       .getByRole("navigation", { name: "Mobile navigation" })
       .getByRole("link", { name: "About" })

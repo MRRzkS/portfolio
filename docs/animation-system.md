@@ -14,7 +14,7 @@ All twenty-one requested techniques are part of the site. Real screenshots suppl
 | Lerp | Frame-rate independent interpolation eases gallery movement and supplies velocity to the shader. |
 | Shaders | Three.js ShaderMaterial uses a subdivided plane vertex shader for bending, plus a fragment shader for image crop, rounded masking, and edge shade. |
 | Masks | SplitText word masks, page clip paths, section overflow, and rounded fragment masks use different timings. |
-| Stacked cards | Featured cards stick and recede on roomy desktop screens. Short and narrow screens use regular cards. |
+| Stacked cards | Featured cards stick and scale on roomy desktop screens. Progress is measured from normal grid tracks and follows Lenis directly without a second scrub delay. Hover tilt, image zoom, and cursor lighting stay off within the stack. Only visible stacks keep their transform layers promoted. Short and narrow screens use regular cards. |
 | Infinite 3D gallery | Perspective-camera image planes wrap around continuously. Scroll, horizontal drag, arrow buttons, and project buttons share one position. |
 | 3D timeline | Scrolling moves the experience rail through perspective, turning each story card and changing its depth. |
 | Parallel page transition | Native view transitions slide two viewport snapshots together with a soft start and end. The outgoing view keeps its visible position; Lenis pauses and the incoming page resets to the top before capture. Direction follows route order. The scrollbar hides while its gutter stays reserved. Content waits for snapshots to settle, while fixed navigation stays usable. A second navigation skips the first safely. Explicit anchor links scroll to their target after arrival. |
@@ -29,13 +29,15 @@ All twenty-one requested techniques are part of the site. Real screenshots suppl
 
 ## Accessibility and performance
 
-Theme changes use a circular viewport reveal centered on the theme button. Both light and dark modes expand over the previous view in 760ms. The navigation is included in this snapshot. A new page transition clears the theme reveal first; reduced motion and browsers without View Transition support switch colors immediately.
+Theme changes use a circular viewport reveal centered on the theme button. Both light and dark modes expand over the previous view in 640ms with a gradual start. The navigation is included in this snapshot. Scroll momentum and shader rendering pause during the reveal. A new page transition clears the theme reveal first; reduced motion and browsers without View Transition support switch colors immediately.
 
 - Reduced motion turns off Lenis, splitting, sticky scroll scenes, and WebGL. Regular images and gallery controls remain available.
 - The canvas is hidden from screen readers. The current project name, link, and labeled buttons remain normal HTML.
 - WebGL uses separate chunks prepared by the opening loader. On the home page, gallery texture uploads and shader compilation complete before the opening reveal. Frame scheduling stops when movement settles, outside its viewport, and in background tabs. Pointer, scroll, resize, and visibility changes wake the renderers. Pixel ratio is capped at 1.5.
 - Pointer effects measure and update at most once per animation frame. The timeline measures its travel on refresh. Large section reveals use opacity and transforms without full-section blur.
 - Gallery loading ignores stale imports when motion preferences change, and only the current renderer can update its controls.
+- Parallel slides use compositor transforms with 900ms timing on desktop and 850ms on mobile. Visible incoming images decode before the snapshot is released. Page entrance effects wait until the slide finishes, and headings already visible in the incoming view do not animate again.
+- Theme and page transitions suspend shader frame scheduling. Completion events wake the current renderers; old renderers remove their listeners on disposal.
 - Texture, geometry, material, listener, trigger, and renderer resources are released when leaving the page.
 - WebGL initialization, shader failure, and context loss retain the image fallback.
 - Browser verification uses Chromium software WebGL because the test environment has no attached desktop GPU.

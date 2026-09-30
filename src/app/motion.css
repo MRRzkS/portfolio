@@ -1,7 +1,9 @@
 /* One motion rhythm, with larger movements reserved for titles and page changes. */
 html { scrollbar-gutter: stable; }
 html.route-transitioning,
-html.lenis.lenis-stopped.route-transitioning { overflow-y: hidden; }
+html.lenis.lenis-stopped.route-transitioning,
+html.theme-transitioning,
+html.lenis.lenis-stopped.theme-transitioning { overflow-y: hidden; }
 .site-header {
   view-transition-name: site-navigation;
 }
@@ -23,12 +25,14 @@ main {
   animation: none;
 }
 ::view-transition-old(root) {
-  animation: parallel-leave 1100ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  animation: parallel-leave 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
   mix-blend-mode: normal;
+  will-change: transform;
 }
 ::view-transition-new(root) {
-  animation: parallel-arrive 1100ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  animation: parallel-arrive 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
   mix-blend-mode: normal;
+  will-change: transform;
 }
 ::view-transition-group(root) {
   animation: none;
@@ -37,10 +41,11 @@ main {
 :root[data-page-direction="backward"]::view-transition-old(root) { animation-name: parallel-leave-back; }
 :root[data-page-direction="backward"]::view-transition-new(root) { animation-name: parallel-arrive-back; }
 
-@keyframes parallel-leave { to { transform: translateX(-100%); } }
-@keyframes parallel-arrive { from { transform: translateX(100%); } to { transform: none; } }
-@keyframes parallel-leave-back { to { transform: translateX(100%); } }
-@keyframes parallel-arrive-back { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes parallel-leave { to { transform: translate3d(-100%, 0, 0); } }
+@keyframes parallel-arrive { from { transform: translate3d(100%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+@keyframes parallel-leave-back { to { transform: translate3d(100%, 0, 0); } }
+@keyframes parallel-arrive-back { from { transform: translate3d(-100%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+.page-scene.native-entry * { animation: none !important; }
 
 /* Theme snapshots include the navigation so the circle covers the whole view. */
 :root.theme-transitioning .site-header { view-transition-name: none; }
@@ -52,11 +57,13 @@ main {
   z-index: 1;
 }
 :root.theme-transitioning::view-transition-new(root) {
-  animation: theme-reveal 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: theme-reveal 640ms cubic-bezier(0.4, 0, 0.2, 1) both;
   transform: none;
   opacity: 1;
   z-index: 2;
+  will-change: clip-path;
 }
+.theme-transitioning .fluid-backdrop { opacity: 0; transition: none; }
 @keyframes theme-reveal {
   from { clip-path: circle(0px at var(--theme-x) var(--theme-y)); }
   to { clip-path: circle(var(--theme-radius) at var(--theme-x) var(--theme-y)); }
@@ -141,12 +148,17 @@ main {
 .project-stack {
   display: grid;
   gap: 40px;
-  perspective: 1800px;
 }
 .stack-card-shell {
   transform-origin: center top;
-  transform-style: preserve-3d;
+  transform-style: flat;
 }
+.stack-active .stack-card-shell { will-change: transform; }
+.project-stack .project-card { transition: none; }
+.project-stack .project-card::after { display: none; }
+.project-stack .project-card:hover .project-visual img { transform: none; }
+.project-stack .project-visual img { transition: none; }
+.project-stack .project-card:hover { box-shadow: 0 12px 50px rgb(18 18 20 / 4%); }
 .project-stack .project-card {
   box-shadow: 0 12px 50px rgb(18 18 20 / 4%);
 }
@@ -371,7 +383,7 @@ main {
   }
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation-duration: 950ms;
+    animation-duration: 850ms;
   }
 }
 @media (prefers-reduced-motion: reduce) {

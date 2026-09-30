@@ -29,13 +29,15 @@ export function ProjectCard({
   project,
   large = false,
   index = 0,
+  tilt = true,
 }: {
   project: Project;
   large?: boolean;
   index?: number;
+  tilt?: boolean;
 }) {
   return (
-    <Tilt className={`project-card ${large ? "large" : ""}`}>
+    <Tilt enabled={tilt} className={`project-card ${large ? "large" : ""}`}>
       <Link
         href={`/work/${project.slug}`}
         className="project-card-link"

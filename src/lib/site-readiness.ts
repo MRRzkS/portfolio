@@ -19,3 +19,15 @@ export function waitForSiteReady() {
     document.addEventListener("site-ready", () => resolve(), { once: true });
   });
 }
+
+export function isViewTransitionActive() {
+  return document.documentElement.matches(".route-transitioning, .theme-transitioning");
+}
+
+export async function waitForPageReady() {
+  await waitForSiteReady();
+  if (!document.documentElement.classList.contains("route-transitioning")) return;
+  await new Promise<void>((resolve) => {
+    document.addEventListener("route-ready", () => resolve(), { once: true });
+  });
+}

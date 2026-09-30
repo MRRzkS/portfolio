@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { lerp, wrap } from "@/lib/animation";
+import { isViewTransitionActive } from "@/lib/site-readiness";
 
 export type GalleryMotion = { target: number; current: number; visible: boolean; requestRender?: () => void };
 
@@ -129,7 +130,7 @@ export function createGalleryRenderer(
     if (disposed) return;
     const delta = Math.min((time - lastTime) / 1000, 0.05);
     lastTime = time;
-    if (failed || !motion.visible || document.hidden) return;
+    if (failed || !motion.visible || document.hidden || isViewTransitionActive()) return;
     if (!needsRender && Math.abs(motion.target - motion.current) < 0.0001) return;
     const previous = motion.current;
     motion.current = lerp(previous, motion.target, 1 - Math.exp(-9 * delta));
@@ -149,12 +150,14 @@ export function createGalleryRenderer(
     if (Math.abs(motion.target - motion.current) >= 0.0001) requestRender();
   }
   function requestRender() {
-    if (!disposed && !failed && !frame && motion.visible && !document.hidden) {
+    if (!disposed && !failed && !frame && motion.visible && !document.hidden && !isViewTransitionActive()) {
       frame = requestAnimationFrame(render);
     }
   }
   motion.requestRender = requestRender;
   document.addEventListener("visibilitychange", requestRender);
+  document.addEventListener("route-ready", requestRender);
+  document.addEventListener("theme-ready", requestRender);
   const contextLost = (event: Event) => { event.preventDefault(); failed = true; onFailure(); };
   renderer.domElement.addEventListener("webglcontextlost", contextLost);
   requestRender();
@@ -163,6 +166,8 @@ export function createGalleryRenderer(
     cancelAnimationFrame(frame);
     if (motion.requestRender === requestRender) delete motion.requestRender;
     document.removeEventListener("visibilitychange", requestRender);
+    document.removeEventListener("route-ready", requestRender);
+    document.removeEventListener("theme-ready", requestRender);
     resizeObserver.disconnect();
     renderer.domElement.removeEventListener("webglcontextlost", contextLost);
     geometry.dispose();

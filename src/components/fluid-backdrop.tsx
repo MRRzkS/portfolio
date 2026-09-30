@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/animation";
 import type { FluidInput } from "@/components/fluid-renderer";
-import { isSiteLoading, registerPreparation } from "@/lib/site-readiness";
+import { isSiteLoading, registerPreparation, waitForPageReady } from "@/lib/site-readiness";
 
 export function FluidBackdrop() {
   const root = useRef<HTMLDivElement>(null);
@@ -28,12 +28,13 @@ export function FluidBackdrop() {
       });
       // At the exact top boundary ScrollTrigger is not active yet.
       input.visible = hero.getBoundingClientRect().bottom > 0;
-      const preparation = import("./fluid-renderer").then(({ createFluidRenderer }) => {
+      const prepare = () => import("./fluid-renderer").then(({ createFluidRenderer }) => {
         if (disposed) return;
         disposeRenderer = createFluidRenderer(surface, input, () => element.classList.remove("fluid-ready"));
         if (disposeRenderer) element.classList.add("fluid-ready");
       }).catch(() => undefined);
-      if (isSiteLoading()) registerPreparation("fluid", preparation);
+      if (isSiteLoading()) registerPreparation("fluid", prepare());
+      else void waitForPageReady().then(() => { if (!disposed) return prepare(); });
       let pointerFrame = 0;
       let pointerPosition: [number, number] = [0, 0];
       function updatePointer() {
