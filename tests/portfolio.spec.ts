@@ -255,6 +255,29 @@ test("reduced motion keeps gallery controls and complete heading text", async ({
   await expect(gallery.locator(".gallery-fallback img")).toBeVisible();
 });
 
+test("gallery swipes work without WebGL and keep the selected project after resize", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await enterSite(page, "/");
+  const gallery = page.getByRole("region", { name: "Project gallery" });
+  const stage = gallery.locator(".gallery-stage");
+  await stage.scrollIntoViewIfNeeded();
+  const bounds = await stage.boundingBox();
+  if (!bounds) throw new Error("Gallery preview is missing");
+  await page.mouse.move(bounds.x + bounds.width * 0.8, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width * 0.3, bounds.y + bounds.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await expect(gallery.getByRole("link", { name: "SkillSync", exact: true })).toBeVisible();
+  await expect(gallery.locator(".gallery-fallback img")).toHaveAttribute("alt", "SkillSync interface");
+  await page.setViewportSize({ width: 360, height: 740 });
+  await stage.scrollIntoViewIfNeeded();
+  await expect(gallery.getByRole("button", { name: "Show SkillSync" })).toHaveAttribute("aria-pressed", "true");
+  const resized = await stage.boundingBox();
+  expect(resized!.width).toBeLessThanOrEqual(360);
+  await gallery.getByRole("button", { name: "Next project" }).click();
+  await expect(gallery.getByRole("link", { name: "Kyklos", exact: true })).toBeVisible();
+});
+
 test("parallel transitions hide the scrollbar and recover from a second navigation", async ({ page, isMobile }) => {
   await enterSite(page, "/");
   await page.getByRole("link", { name: "Explore my work", exact: true }).click();

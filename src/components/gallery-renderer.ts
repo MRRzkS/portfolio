@@ -97,6 +97,7 @@ export function createGalleryRenderer(
       vertexShader,
       fragmentShader,
       transparent: true,
+      depthWrite: false,
       side: THREE.DoubleSide,
     });
     materials.push(material);
@@ -117,7 +118,9 @@ export function createGalleryRenderer(
     if (!width || !height) return;
     renderer.setSize(width, height);
     camera.aspect = width / height;
-    camera.position.z = Math.max(4.6, 6.5 / camera.aspect);
+    // Fit the selected preview to both dimensions, leaving room for the next project.
+    const viewHeight = Math.max((3.8 / 1.8) / 0.88, 3.8 / (camera.aspect * 0.88));
+    camera.position.z = viewHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     camera.updateProjectionMatrix();
     needsRender = true;
     requestRender();
@@ -137,11 +140,13 @@ export function createGalleryRenderer(
     const velocity = motion.current - previous;
     meshes.forEach((mesh, index) => {
       const distance = wrap(index - motion.current + images.length / 2, images.length) - images.length / 2;
-      mesh.position.set(distance * 4.35, -Math.abs(distance) * 0.12, -Math.abs(distance) * 0.85);
-      mesh.rotation.y = -distance * 0.2;
-      mesh.rotation.z = -distance * 0.015;
-      materials[index].uniforms.uBend.value = Math.max(-0.65, Math.min(0.65, velocity * 12));
-      materials[index].uniforms.uOpacity.value = Math.max(0.28, 1 - Math.abs(distance) * 0.25);
+      const offset = Math.abs(distance);
+      mesh.visible = offset < 1.8;
+      mesh.position.set(distance * 4.65, 0, -offset * 0.8);
+      mesh.rotation.y = -distance * 0.16;
+      mesh.rotation.z = 0;
+      materials[index].uniforms.uBend.value = Math.max(-0.3, Math.min(0.3, velocity * 6));
+      materials[index].uniforms.uOpacity.value = 1 - THREE.MathUtils.smoothstep(offset, 1.1, 1.8);
     });
     const index = wrap(Math.round(motion.current), images.length);
     if (index !== lastIndex) { lastIndex = index; onIndex(index); }
