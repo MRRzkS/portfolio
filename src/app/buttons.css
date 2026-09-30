@@ -1,33 +1,31 @@
 .button-gooey {
   position: fixed;
-  height: 32px;
   z-index: 100;
   pointer-events: none;
+  overflow: hidden;
   color: var(--ink);
   opacity: 0;
-  transition: opacity 180ms var(--ease);
-  contain: layout style;
+  transition: opacity 140ms var(--ease);
+  contain: layout style paint;
 }
-.button-gooey[data-active="true"] { opacity: 0.2; }
-.button-gooey[data-primary="true"] { color: var(--button-ink); opacity: 0; }
-.button-gooey[data-primary="true"][data-active="true"] { opacity: 0.25; }
-.button-gooey svg { display: block; width: 100%; height: 100%; overflow: visible; fill: currentColor; }
-.button-gooey-core, .button-gooey-drop {
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: transform 500ms cubic-bezier(0.22, 1.4, 0.36, 1);
+.button-gooey[data-active="true"] { opacity: 0.1; }
+.button-gooey-definitions { position: absolute; pointer-events: none; }
+.button-gooey-point {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--gooey-size, 24px);
+  height: var(--gooey-size, 24px);
+  margin-left: calc(var(--gooey-size, 24px) / -2);
+  margin-top: calc(var(--gooey-size, 24px) / -2);
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate3d(var(--gooey-x, 0px), var(--gooey-y, 0px), 0)
+    rotate(var(--gooey-angle, 0rad)) scale(var(--gooey-stretch, 1), 1);
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), scale 180ms var(--ease);
+  scale: 1;
 }
-.button-gooey-core { transform: scaleX(0.6); }
-.button-gooey[data-active="true"] .button-gooey-core { transform: scaleX(1); }
-.button-gooey-drop.first {
-  transform: translate(calc(18px + var(--gooey-drift-x, 0px)), calc(-3px + var(--gooey-drift-y, 0px)));
-}
-.button-gooey-drop.second {
-  transform: translate(calc(-18px - var(--gooey-drift-x, 0px) * 0.6), calc(2px - var(--gooey-drift-y, 0px)));
-}
-.button-gooey[data-pressed="true"] .button-gooey-core { transform: scaleX(0.8) scaleY(1.5); }
-.button-gooey[data-pressed="true"] .button-gooey-drop { transform: translate(0, 0) scale(1.2); }
-.button-gooey[data-active="false"] .button-gooey-drop { transform: translate(0, 0) scale(0.5); }
+.button-gooey[data-pressed="true"] .button-gooey-point { scale: 0.8; }
 @media (prefers-reduced-motion: reduce) {
   .button-gooey { display: none; }
 }

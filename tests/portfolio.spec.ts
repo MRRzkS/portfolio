@@ -392,6 +392,37 @@ test("buttons share a gooey response without blocking clicks, keyboard focus, or
   await expect(filter).toHaveAttribute("aria-pressed", "true");
 });
 
+test("one goo point follows the mouse in both directions and stays clipped to each button", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Mouse position is checked on desktop; taps are covered separately.");
+  const surface = page.locator(".button-gooey");
+  for (const [route, role, name] of [
+    ["/", "link", "Explore my work"],
+    ["/", "button", "Switch to dark theme"],
+    ["/work", "button", "Applied AI"],
+  ] as const) {
+    await enterSite(page, route);
+    const button = page.getByRole(role, { name, exact: true });
+    await button.hover();
+    await expect(surface.locator(".button-gooey-point")).toHaveCount(1);
+    await expect(surface).toHaveCSS("overflow", "hidden");
+    await page.waitForTimeout(250);
+    const bounds = await button.boundingBox();
+    if (!bounds) throw new Error("Button is missing");
+    for (const [horizontal, vertical] of [[0.25, 0.25], [0.8, 0.75]]) {
+      const x = bounds.x + bounds.width * horizontal;
+      const y = bounds.y + bounds.height * vertical;
+      await page.mouse.move(x, y);
+      await expect.poll(async () => {
+        const point = await surface.locator(".button-gooey-point").boundingBox();
+        return point ? Math.hypot(point.x + point.width / 2 - x, point.y + point.height / 2 - y) : Infinity;
+      }).toBeLessThan(3);
+    }
+    expect(await surface.evaluate((element) => getComputedStyle(element).borderRadius)).toBe(
+      await button.evaluate((element) => getComputedStyle(element).borderRadius),
+    );
+  }
+});
+
 test("internal pages blend through a view transition and reduced motion skips it", async ({ page, isMobile }) => {
   await enterSite(page, "/");
   await page.evaluate(() => {

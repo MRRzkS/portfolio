@@ -20,6 +20,25 @@ export function ButtonGooey() {
     let releaseTimer = 0;
     let pointerX = 0;
     let pointerY = 0;
+    let lastX = 0;
+    let lastY = 0;
+
+    function position(element: HTMLElement) {
+      bounds = element.getBoundingClientRect();
+      field!.style.width = `${bounds.width}px`;
+      field!.style.height = `${bounds.height}px`;
+      field!.style.left = `${bounds.left}px`;
+      field!.style.top = `${bounds.top}px`;
+      field!.style.borderRadius = getComputedStyle(element).borderRadius;
+      field!.style.setProperty("--gooey-size", `${Math.min(30, Math.max(16, bounds.height * 0.55))}px`);
+    }
+
+    function point(x: number, y: number, stretch = 1, angle = 0) {
+      field!.style.setProperty("--gooey-x", `${x}px`);
+      field!.style.setProperty("--gooey-y", `${y}px`);
+      field!.style.setProperty("--gooey-stretch", String(stretch));
+      field!.style.setProperty("--gooey-angle", `${angle}rad`);
+    }
 
     function control(target: EventTarget | null) {
       const element = target instanceof Element ? target.closest<HTMLElement>(controls) : null;
@@ -41,15 +60,11 @@ export function ButtonGooey() {
       if (active === element) return;
       window.clearTimeout(releaseTimer);
       active = element;
-      bounds = element.getBoundingClientRect();
-      const width = Math.min(88, Math.max(26, bounds.width * 0.55));
-      field!.style.width = `${width}px`;
-      field!.style.left = `${bounds.left + (bounds.width - width) / 2}px`;
-      field!.style.top = `${bounds.bottom - 21}px`;
+      position(element);
       field!.style.color = getComputedStyle(element).color;
-      field!.style.setProperty("--gooey-drift-x", "0px");
-      field!.style.setProperty("--gooey-drift-y", "0px");
-      field!.dataset.primary = String(element.classList.contains("primary"));
+      lastX = bounds!.width / 2;
+      lastY = bounds!.height / 2;
+      point(lastX, lastY);
       field!.dataset.active = "true";
       field!.dataset.pressed = "false";
     }
@@ -64,17 +79,21 @@ export function ButtonGooey() {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        if (!bounds) return;
-        const horizontal = Math.max(-1, Math.min(1, (pointerX - bounds.left) / bounds.width * 2 - 1));
-        const vertical = Math.max(-1, Math.min(1, (pointerY - bounds.top) / bounds.height * 2 - 1));
-        field!.style.setProperty("--gooey-drift-x", `${horizontal * 16}px`);
-        field!.style.setProperty("--gooey-drift-y", `${vertical * 3}px`);
+        if (!active) return;
+        position(active);
+        const x = Math.max(0, Math.min(bounds!.width, pointerX - bounds!.left));
+        const y = Math.max(0, Math.min(bounds!.height, pointerY - bounds!.top));
+        const dx = x - lastX;
+        const dy = y - lastY;
+        const stretch = 1 + Math.min(0.22, Math.hypot(dx, dy) / 180);
+        point(x, y, stretch, Math.atan2(dy, dx));
+        lastX = x;
+        lastY = y;
       });
     }
 
     function enter(event: PointerEvent) {
-      const element = control(event.target);
-      if (element) show(element);
+      move(event);
     }
     function leave(event: PointerEvent) {
       if (active && control(event.relatedTarget) !== active) hide();
@@ -89,7 +108,7 @@ export function ButtonGooey() {
     function press(event: PointerEvent) {
       const element = control(event.target);
       if (!element) return;
-      show(element);
+      move(event);
       if (active) field!.dataset.pressed = "true";
     }
     function release(event: PointerEvent) {
@@ -150,19 +169,15 @@ export function ButtonGooey() {
 
   return (
     <div ref={surface} className="button-gooey" aria-hidden="true" data-active="false" data-pressed="false">
-      <svg viewBox="0 0 100 32" preserveAspectRatio="none">
+      <svg width="0" height="0" className="button-gooey-definitions">
         <defs>
           <filter id={filterId} x="-30%" y="-60%" width="160%" height="220%" colorInterpolationFilters="sRGB">
             <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="soft" />
             <feColorMatrix in="soft" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 16 -6" />
           </filter>
         </defs>
-        <g filter={`url(#${filterId})`}>
-          <rect className="button-gooey-core" x="22" y="13" width="56" height="6" rx="3" />
-          <circle className="button-gooey-drop first" cx="50" cy="16" r="5" />
-          <circle className="button-gooey-drop second" cx="50" cy="16" r="4" />
-        </g>
       </svg>
+      <span className="button-gooey-point" style={{ filter: `url(#${filterId})` }} />
     </div>
   );
 }
